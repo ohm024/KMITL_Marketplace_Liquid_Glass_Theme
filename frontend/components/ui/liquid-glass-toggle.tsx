@@ -236,10 +236,11 @@ export function LiquidToggle({
   const st = React.useRef(makeState())
   const [gl, setGl] = React.useState<"on" | "off">("on")
   const darkRef = React.useRef(0)
+const cbRef = React.useRef({ onCheckedChange, controlled: checked !== undefined, sound })
+React.useEffect(() => {
   darkRef.current = tone === "dark" ? 1 : 0
-  const cbRef = React.useRef({ onCheckedChange, controlled: checked !== undefined, sound })
   cbRef.current = { onCheckedChange, controlled: checked !== undefined, sound }
-
+}, [tone, onCheckedChange, checked, sound])
   const g = geometry(size)
   const hasIcons = !!(icons?.off || icons?.on)
 

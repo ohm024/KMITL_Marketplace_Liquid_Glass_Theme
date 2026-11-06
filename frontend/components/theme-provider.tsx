@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ export default function ThemeProvider({children}:{children:React.ReactNode}) {
       const stored = localStorage.getItem("kmitl-theme");
       next = stored === "dark" || stored === "light" ? stored : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     } catch { /* storage can be blocked */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(next);
   }, []);
   useEffect(() => {

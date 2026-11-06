@@ -238,9 +238,11 @@ export function LiquidAccordion({
   const [gl, setGl] = React.useState<"on" | "off">("on")
   const [fx, setFx] = React.useState({ i: -1, n: 0 })
   const darkRef = React.useRef(0)
-  darkRef.current = tone === "dark" ? 1 : 0
+  
+  React.useEffect(() => {
+    darkRef.current = tone === "dark" ? 1 : 0
+  }, [tone])
   const H = `h${headingLevel}` as "h3"
-
   /* where the pool should be right now (follows the answer while it opens) */
   const target = React.useCallback((): Target | null => {
     const s = st.current
@@ -491,6 +493,7 @@ export function LiquidAccordion({
       const o = ctx.createOscillator()
       const g = ctx.createGain()
       o.type = "sine"
+      // eslint-disable-next-line react-hooks/purity
       o.frequency.setValueAtTime(420 + Math.random() * 80, t)
       o.frequency.exponentialRampToValueAtTime(1500, t + 0.07)
       g.gain.setValueAtTime(0.0001, t)
