@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: marketplace
+      POSTGRES_DB: marketplace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketplace -d marketplace"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  backend:
+    build: ./backend
+    environment:
+      ENV: development
+      DATABASE_URL: postgresql+psycopg://marketplace:marketplace@db:5432/marketplace
+      SECRET_KEY: change-this-secret-before-production-32chars
+      FRONTEND_ORIGINS: http://localhost:3000
+      API_PUBLIC_URL: http://localhost:8000
+      # DEMO ONLY: change to an authorized institutional account for your team.
+      ADMIN_EMAILS: admin@kmitl.ac.th
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+volumes:
+  postgres_data:
+  uploads:

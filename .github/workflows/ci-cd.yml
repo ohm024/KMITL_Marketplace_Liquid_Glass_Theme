@@ -1,0 +1,85 @@
+name: Marketplace CI and CD
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Backend tests and Python lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Syntax and unused imports
+        run: ruff check app tests --select E4,E7,E9,F
+      - name: Backend automated tests
+        env:
+          ENV: development
+          DATABASE_URL: sqlite:///./ci-tests.db
+        run: pytest -q tests
+
+  frontend-build:
+    name: Frontend lint, TypeScript and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install web dependencies
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Type-check
+        run: npm run typecheck
+      - name: Production build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.example.org
+        run: npm run build
+
+  deploy:
+    name: Continuous Deployment hooks (configured services only)
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render backend deployment
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl --fail-with-body --show-error --silent --request POST "$DEPLOY_HOOK"
+          else
+            echo 'SKIPPED: Configure RENDER_DEPLOY_HOOK_URL GitHub Secret.'
+          fi
+      - name: Trigger Vercel frontend deployment
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl --fail-with-body --show-error --silent --request POST "$DEPLOY_HOOK"
+          else
+            echo 'SKIPPED: Configure VERCEL_DEPLOY_HOOK_URL GitHub Secret.'
+          fi
+      - name: Smoke test API (optional)
+        env:
+          HEALTH_URL: ${{ secrets.PUBLIC_API_HEALTH_URL }}
+        run: |
+          if [ -n "$HEALTH_URL" ]; then
+            echo 'API deploy hooks are asynchronous. Health here checks reachability, not the new deployment version.'
+            curl --fail-with-body --show-error --silent "$HEALTH_URL"
+          else
+            echo 'SKIPPED: Set PUBLIC_API_HEALTH_URL to check API reachability.'
+          fi

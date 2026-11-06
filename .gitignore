@@ -1,0 +1,17 @@
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.venv/
+*.py[cod]
+backend/.env
+frontend/.env.local
+.env
+*.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+node_modules/
+.next/
+*.tsbuildinfo
+.DS_Store
+.vercel/
+coverage/
