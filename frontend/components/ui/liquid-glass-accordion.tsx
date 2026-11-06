@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 /**
@@ -238,7 +239,7 @@ export function LiquidAccordion({
   const [gl, setGl] = React.useState<"on" | "off">("on")
   const [fx, setFx] = React.useState({ i: -1, n: 0 })
   const darkRef = React.useRef(0)
-  
+
   React.useEffect(() => {
     darkRef.current = tone === "dark" ? 1 : 0
   }, [tone])

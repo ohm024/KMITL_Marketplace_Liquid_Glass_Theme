@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { MapPin, ShieldCheck } from "lucide-react";
 import { Listing, money, statusThai } from "@/lib/api";
